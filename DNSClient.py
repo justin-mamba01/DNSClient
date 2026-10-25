@@ -1,57 +1,56 @@
 import dns.resolver
 
-# ------------------------------------------------------------------
-# Global Variables (Required by Skeleton)
-# ------------------------------------------------------------------
-local_host = "127.0.0.1"[cite: 6]
-real_name_server = "8.8.8.8"[cite: 6]
-question_type = "A"[cite: 6]
+
+local_host = "127.0.0.1"
+public_dns_server = "8.8.8.8"
+question_type = "A"
 
 
-# ------------------------------------------------------------------
-# General DNS Query Function
-# ------------------------------------------------------------------
-def query_dns_server(domain_name, question_type=question_type, dns_server=real_name_server):
-    """
-    Queries a specified DNS server for a domain name and record type.
-    """
-    resolver = dns.resolver.Resolver()
-    resolver.nameservers = [dns_server][cite: 6]
-    
-    # Perform the query using resolve()
-    answers = resolver.resolve(domain_name, question_type)[cite: 6]
-    
-    # Return the text representation of the first answer record
-    return answers[0].to_text()[cite: 6]
+def query_dns_server(domain_name: str, dns_server: str) -> str:
+    resolver = dns.resolver.Resolver(configure=False)
+    resolver.nameservers = [dns_server]
+    response = resolver.resolve(domain_name, question_type)
+    return response[0].to_text()
 
 
-# ------------------------------------------------------------------
-# Helper Functions expected by GradeScope
-# ------------------------------------------------------------------
-def query_local_dns_server(domain_name, question_type=question_type):
-    """
-    Queries the local DNS server (127.0.0.1).
-    """
-    return query_dns_server(domain_name, question_type, dns_server=local_host)[cite: 6]
+def query_local_dns(domain_name: str) -> str:
+    return query_dns_server(domain_name, local_host)
 
 
-def query_public_dns_server(domain_name, question_type=question_type):
-    """
-    Queries the public DNS server (8.8.8.8).
-    """
-    return query_dns_server(domain_name, question_type, dns_server=real_name_server)[cite: 6]
+def query_public_dns(domain_name: str) -> str:
+    return query_dns_server(domain_name, public_dns_server)
 
 
-def compare_dns_servers(domain_name, question_type=question_type):
-    """
-    Compares the responses from local and public DNS servers.
-    """
-    local_result = query_local_dns_server(domain_name, question_type)[cite: 7]
-    public_result = query_public_dns_server(domain_name, question_type)[cite: 7]
-    return local_result == public_result[cite: 7]
+def compare_dns_servers(domain_name: str) -> bool:
+    local_ip = query_local_dns(domain_name)
+    public_ip = query_public_dns(domain_name)
+    return local_ip == public_ip
+
+
+def run_tests(domains: list[str]) -> None:
+    for domain in domains:
+        try:
+            local_ip = query_local_dns(domain)
+        except dns.exception.DNSException as error:
+            local_ip = f"Local DNS error: {error}"
+
+        try:
+            public_ip = query_public_dns(domain)
+        except dns.exception.DNSException as error:
+            public_ip = f"Public DNS error: {error}"
+
+        matches = local_ip == public_ip
+        print(f"Domain: {domain}")
+        print(f"  Local DNS ({local_host}):  {local_ip}")
+        print(f"  Public DNS ({public_dns_server}): {public_ip}")
+        print(f"  Match: {matches}")
+        print("-" * 60)
 
 
 if __name__ == "__main__":
-    test_domain = "google.com"
-    print("Local DNS:", query_local_dns_server(test_domain))[cite: 7]
-    print("Public DNS:", query_public_dns_server(test_domain))[cite: 7]
+    test_domains = [
+        "google.com",
+        "nyu.edu",
+        "github.com",
+    ]
+    run_tests(test_domains)

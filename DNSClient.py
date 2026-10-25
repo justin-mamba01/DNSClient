@@ -1,48 +1,57 @@
 import dns.resolver
 
-# Define required global variables
+# ------------------------------------------------------------------
+# Required Global Variables
+# ------------------------------------------------------------------
 local_host = "127.0.0.1"
-real_name_server = "8.8.8.8"  # Public DNS server IP expected by GradeScope
+real_name_server = "8.8.8.8"
 question_type = "A"
 
 
-def query_local_dns_server(domain_name, record_type=question_type):
+# ------------------------------------------------------------------
+# Core Query Function
+# ------------------------------------------------------------------
+def query_dns_server(domain_name, dns_server=real_name_server, qtype=question_type):
     """
-    Queries the local DNS server for a given domain and record type.
+    Queries a specified DNS server for a domain name and record type.
     """
     resolver = dns.resolver.Resolver()
-    resolver.nameservers = [local_host]
+    resolver.nameservers = [dns_server]
+    
     try:
-        answers = resolver.resolve(domain_name, record_type)
+        answers = resolver.resolve(domain_name, qtype)
         return answers[0].to_text()
     except Exception as e:
         return str(e)
 
 
-def query_public_dns_server(domain_name, record_type=question_type):
+# ------------------------------------------------------------------
+# Dedicated Functions
+# ------------------------------------------------------------------
+def query_local_dns_server(domain_name, qtype=question_type):
     """
-    Queries a public DNS server for a given domain and record type.
+    Queries the local DNS server (127.0.0.1).
     """
-    resolver = dns.resolver.Resolver()
-    resolver.nameservers = [real_name_server]
-    try:
-        answers = resolver.resolve(domain_name, record_type)
-        return answers[0].to_text()
-    except Exception as e:
-        return str(e)
+    return query_dns_server(domain_name, dns_server=local_host, qtype=qtype)
 
 
-def compare_dns_servers(domain_name, record_type=question_type):
+def query_public_dns_server(domain_name, qtype=question_type):
     """
-    Compares the responses from local and public DNS servers.
+    Queries the public DNS server (real_name_server).
     """
-    local_result = query_local_dns_server(domain_name, record_type)
-    public_result = query_public_dns_server(domain_name, record_type)
-    return local_result == public_result
+    return query_dns_server(domain_name, dns_server=real_name_server, qtype=qtype)
+
+
+def compare_dns_servers(domain_name, qtype=question_type):
+    """
+    Compares responses from the local DNS server and the public DNS server.
+    """
+    local_res = query_local_dns_server(domain_name, qtype)
+    public_res = query_public_dns_server(domain_name, qtype)
+    return local_res == public_res
 
 
 if __name__ == "__main__":
-    # Optional local test execution
     test_domain = "google.com"
-    print(f"Local query result: {query_local_dns_server(test_domain)}")
-    print(f"Public query result: {query_public_dns_server(test_domain)}")
+    print("Local DNS Result:", query_local_dns_server(test_domain))
+    print("Public DNS Result:", query_public_dns_server(test_domain))

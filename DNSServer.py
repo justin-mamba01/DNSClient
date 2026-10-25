@@ -43,7 +43,7 @@ def decrypt_with_aes(encrypted_data, password, salt):
 
 
 salt = b"Tandon"
-password = "jj5648@nyu.edu"
+password = "jj4658@nyu.edu"
 input_string = "AlwaysWatching"
 
 encrypted_value = encrypt_with_aes(input_string, password, salt)
@@ -88,7 +88,7 @@ dns_records = {
     },
     "nyu.edu.": {
         dns.rdatatype.A: "192.168.1.106",
-        dns.rdatatype.TXT: (f'"{encrypted_value}"',),
+        dns.rdatatype.TXT: (str(encrypted_value),),
         dns.rdatatype.MX: [(10, "mxa-00256a01.gslb.pphosted.com.")],
         dns.rdatatype.AAAA: "2001:0db8:85a3:0000:0000:8a2e:0373:7312",
         dns.rdatatype.NS: "ns1.nyu.edu.",

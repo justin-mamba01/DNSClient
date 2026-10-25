@@ -10,44 +10,48 @@ local_name_server = local_host
 real_name_server = public_dns_server
 
 
-def query_dns_server(domain_name: str, dns_server: str) -> str:
+def _resolve_with_server(domain_name: str, record_type: str, dns_server: str) -> str:
     resolver = dns.resolver.Resolver(configure=False)
     resolver.nameservers = [dns_server]
-    response = resolver.resolve(domain_name, question_type)
+    response = resolver.resolve(domain_name, record_type)
     return response[0].to_text()
 
 
-def query_local_dns(domain_name: str) -> str:
-    return query_dns_server(domain_name, local_host)
+def query_dns_server(domain_name: str, record_type: str = question_type) -> str:
+    return _resolve_with_server(domain_name, record_type, real_name_server)
 
 
-def query_public_dns(domain_name: str) -> str:
-    return query_dns_server(domain_name, public_dns_server)
+def query_local_dns_server(domain_name: str, record_type: str = question_type) -> str:
+    return _resolve_with_server(domain_name, record_type, local_name_server)
 
 
-def query_local_dns_server(domain_name: str) -> str:
-    return query_local_dns(domain_name)
+def query_real_dns_server(domain_name: str, record_type: str = question_type) -> str:
+    return _resolve_with_server(domain_name, record_type, real_name_server)
 
 
-def query_real_dns_server(domain_name: str) -> str:
-    return query_public_dns(domain_name)
+def query_local_dns(domain_name: str, record_type: str = question_type) -> str:
+    return query_local_dns_server(domain_name, record_type)
 
 
-def compare_dns_servers(domain_name: str) -> bool:
-    local_ip = query_local_dns(domain_name)
-    public_ip = query_public_dns(domain_name)
+def query_public_dns(domain_name: str, record_type: str = question_type) -> str:
+    return query_real_dns_server(domain_name, record_type)
+
+
+def compare_dns_servers(domain_name: str, record_type: str = question_type) -> bool:
+    local_ip = query_local_dns_server(domain_name, record_type)
+    public_ip = query_real_dns_server(domain_name, record_type)
     return local_ip == public_ip
 
 
 def run_tests(domains: list[str]) -> None:
     for domain in domains:
         try:
-            local_ip = query_local_dns(domain)
+            local_ip = query_local_dns_server(domain, question_type)
         except dns.exception.DNSException as error:
             local_ip = f"Local DNS error: {error}"
 
         try:
-            public_ip = query_public_dns(domain)
+            public_ip = query_real_dns_server(domain, question_type)
         except dns.exception.DNSException as error:
             public_ip = f"Public DNS error: {error}"
 

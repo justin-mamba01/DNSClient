@@ -5,6 +5,10 @@ local_host = "127.0.0.1"
 public_dns_server = "8.8.8.8"
 question_type = "A"
 
+# Compatibility aliases expected by the assignment autograder/skeleton naming.
+local_name_server = local_host
+real_name_server = public_dns_server
+
 
 def query_dns_server(domain_name: str, dns_server: str) -> str:
     resolver = dns.resolver.Resolver(configure=False)
@@ -19,6 +23,14 @@ def query_local_dns(domain_name: str) -> str:
 
 def query_public_dns(domain_name: str) -> str:
     return query_dns_server(domain_name, public_dns_server)
+
+
+def query_local_dns_server(domain_name: str) -> str:
+    return query_local_dns(domain_name)
+
+
+def query_real_dns_server(domain_name: str) -> str:
+    return query_public_dns(domain_name)
 
 
 def compare_dns_servers(domain_name: str) -> bool:
